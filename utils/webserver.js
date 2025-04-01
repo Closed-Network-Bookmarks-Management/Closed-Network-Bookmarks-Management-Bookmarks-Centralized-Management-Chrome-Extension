@@ -9,7 +9,7 @@ var WebpackDevServer = require('webpack-dev-server'),
   env = require('./env'),
   path = require('path');
 
-var options = config.chromeExtensionBoilerplate || {};
+var options = {};
 var excludeEntriesToHotReload = options.notHotReload || [];
 
 for (var entryName in config.entry) {
@@ -20,8 +20,6 @@ for (var entryName in config.entry) {
     ].concat(config.entry[entryName]);
   }
 }
-
-delete config.chromeExtensionBoilerplate;
 
 var compiler = webpack(config);
 

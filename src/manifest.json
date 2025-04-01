@@ -1,11 +1,16 @@
 {
   "manifest_version": 3,
-  "name": "Chrome Extension with React & Webpack",
-  "description": "A chrome extension boilerplate built with React 17, Webpack 5, and Webpack Dev Server 4",
-  "options_page": "options.html",
-  "background": { "service_worker": "background.bundle.js" },
+  "name": "Auto SidePanel Trigger",
+  "version": "1.0",
+  "description": "확장 아이콘 클릭 시 사이드패널 자동 열기",
+  "permissions": ["scripting", "tabs"],
+  "host_permissions": ["<all_urls>"],
+
+  "background": {
+    "service_worker": "background.bundle.js"
+  },
+
   "action": {
-    "default_popup": "popup.html",
     "default_icon": "icon-34.png"
   },
 
@@ -13,24 +18,10 @@
     "default_path": "pages/SidePanel/index.html"
   },
 
-  "chrome_url_overrides": {
-    "newtab": "newtab.html"
-  },
-  "icons": {
-    "128": "icon-128.png"
-  },
   "content_scripts": [
     {
-      "matches": ["http://*/*", "https://*/*", "<all_urls>"],
-      "js": ["contentScript.bundle.js"],
-      "css": ["content.styles.css"]
-    }
-  ],
-  "devtools_page": "devtools.html",
-  "web_accessible_resources": [
-    {
-      "resources": ["content.styles.css", "icon-128.png", "icon-34.png"],
-      "matches": []
+      "matches": ["<all_urls>"],
+      "js": ["contentScript.bundle.js"]
     }
   ]
 }

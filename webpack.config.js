@@ -1,54 +1,32 @@
-var webpack = require('webpack'),
-  path = require('path'),
-  fileSystem = require('fs-extra'),
-  env = require('./utils/env'),
-  CopyWebpackPlugin = require('copy-webpack-plugin'),
-  HtmlWebpackPlugin = require('html-webpack-plugin'),
-  TerserPlugin = require('terser-webpack-plugin');
-var { CleanWebpackPlugin } = require('clean-webpack-plugin');
-var ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin');
-var ReactRefreshTypeScript = require('react-refresh-typescript');
+const webpack = require('webpack');
+const path = require('path');
+const fileSystem = require('fs-extra');
+const { NODE_ENV } = require('./utils/env');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const TerserPlugin = require('terser-webpack-plugin');
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
+const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin');
+const ReactRefreshTypeScript = require('react-refresh-typescript');
 
+const isDevelopment = NODE_ENV !== 'production';
 const ASSET_PATH = process.env.ASSET_PATH || '/';
 
-var alias = {};
-
-// load the secrets
-var secretsPath = path.join(__dirname, 'secrets.' + env.NODE_ENV + '.js');
-
-var fileExtensions = [
-  'jpg',
-  'jpeg',
-  'png',
-  'gif',
-  'eot',
-  'otf',
-  'svg',
-  'ttf',
-  'woff',
-  'woff2',
-];
+const alias = {};
+const secretsPath = path.join(__dirname, 'secrets.' + NODE_ENV + '.js');
+const fileExtensions = ['jpg', 'jpeg', 'png', 'gif', 'eot', 'otf', 'svg', 'ttf', 'woff', 'woff2'];
 
 if (fileSystem.existsSync(secretsPath)) {
   alias['secrets'] = secretsPath;
 }
 
-const isDevelopment = process.env.NODE_ENV !== 'production';
-
-var options = {
-  mode: process.env.NODE_ENV || 'development',
+const config = {
+  mode: NODE_ENV || 'development',
   entry: {
-    newtab: path.join(__dirname, 'src', 'pages', 'Newtab', 'index.jsx'),
-    options: path.join(__dirname, 'src', 'pages', 'Options', 'index.jsx'),
-    background: path.join(__dirname, 'src', 'pages', 'Background', 'index.js'),
-    contentScript: path.join(__dirname, 'src', 'pages', 'Content', 'index.js'),
-    devtools: path.join(__dirname, 'src', 'pages', 'Devtools', 'index.js'),
-    panel: path.join(__dirname, 'src', 'pages', 'Panel', 'index.jsx'),
-    sidepanel: path.join(__dirname, 'src', 'pages', 'SidePanel', 'index.tsx'),
-
-  },
-  chromeExtensionBoilerplate: {
-    notHotReload: ['background', 'contentScript', 'devtools'],
+    background: path.join(__dirname, 'src/pages/Background/index.js'),
+    contentScript: path.join(__dirname, 'src/pages/Content/index.js'),
+    sidepanel: path.join(__dirname, 'src/pages/SidePanel/index.tsx'),
+    options: path.join(__dirname, 'src/pages/Options/index.jsx'),
   },
   output: {
     filename: '[name].bundle.js',
@@ -59,32 +37,13 @@ var options = {
   module: {
     rules: [
       {
-        // look for .css or .scss files
         test: /\.(css|scss)$/,
-        // in the `src` directory
-        use: [
-          {
-            loader: 'style-loader',
-          },
-          {
-            loader: 'css-loader',
-          },
-          {
-            loader: 'sass-loader',
-            options: {
-              sourceMap: true,
-            },
-          },
-        ],
+        use: ['style-loader', 'css-loader', 'sass-loader'],
       },
       {
         test: new RegExp('.(' + fileExtensions.join('|') + ')$'),
         type: 'asset/resource',
         exclude: /node_modules/,
-        // loader: 'file-loader',
-        // options: {
-        //   name: '[name].[ext]',
-        // },
       },
       {
         test: /\.html$/,
@@ -96,12 +55,10 @@ var options = {
         exclude: /node_modules/,
         use: [
           {
-            loader: require.resolve('ts-loader'),
+            loader: 'ts-loader',
             options: {
               getCustomTransformers: () => ({
-                before: [isDevelopment && ReactRefreshTypeScript()].filter(
-                  Boolean
-                ),
+                before: [isDevelopment && ReactRefreshTypeScript()].filter(Boolean),
               }),
               transpileOnly: isDevelopment,
             },
@@ -110,56 +67,54 @@ var options = {
       },
       {
         test: /\.(js|jsx)$/,
+        exclude: /node_modules/,
         use: [
+          'source-map-loader',
           {
-            loader: 'source-map-loader',
-          },
-          {
-            loader: require.resolve('babel-loader'),
+            loader: 'babel-loader',
             options: {
-              plugins: [
-                isDevelopment && require.resolve('react-refresh/babel'),
-              ].filter(Boolean),
+              plugins: [isDevelopment && require.resolve('react-refresh/babel')].filter(Boolean),
             },
           },
         ],
-        exclude: /node_modules/,
       },
     ],
   },
   resolve: {
-    alias: alias,
-    extensions: fileExtensions
-      .map((extension) => '.' + extension)
-      .concat(['.js', '.jsx', '.ts', '.tsx', '.css']),
+    alias,
+    extensions: fileExtensions.map(ext => '.' + ext).concat(['.js', '.jsx', '.ts', '.tsx', '.css']),
   },
   plugins: [
     isDevelopment && new ReactRefreshWebpackPlugin(),
     new CleanWebpackPlugin({ verbose: false }),
     new webpack.ProgressPlugin(),
-    // expose and write the allowed env vars on the compiled bundle
     new webpack.EnvironmentPlugin(['NODE_ENV']),
+
     new CopyWebpackPlugin({
       patterns: [
         {
           from: 'src/manifest.json',
           to: path.join(__dirname, 'build'),
           force: true,
-          transform: function (content, path) {
-            // generates the manifest file using the package.json informations
-            return Buffer.from(
-              JSON.stringify({
-                description: process.env.npm_package_description,
-                version: process.env.npm_package_version,
-                ...JSON.parse(content.toString()),
-              })
-            );
+          transform(content) {
+            const manifest = JSON.parse(content.toString());
+            return Buffer.from(JSON.stringify({
+              ...manifest,
+              description: process.env.npm_package_description,
+              version: process.env.npm_package_version
+            }, null, 2));
           },
         },
-      ],
-    }),
-    new CopyWebpackPlugin({
-      patterns: [
+        {
+          from: 'src/assets/img/icon-128.png',
+          to: path.join(__dirname, 'build'),
+          force: true,
+        },
+        {
+          from: 'src/assets/img/icon-34.png',
+          to: path.join(__dirname, 'build'),
+          force: true,
+        },
         {
           from: 'src/pages/Content/content.styles.css',
           to: path.join(__dirname, 'build'),
@@ -167,50 +122,16 @@ var options = {
         },
       ],
     }),
-    new CopyWebpackPlugin({
-      patterns: [
-        {
-          from: 'src/assets/img/icon-128.png',
-          to: path.join(__dirname, 'build'),
-          force: true,
-        },
-      ],
-    }),
-    new CopyWebpackPlugin({
-      patterns: [
-        {
-          from: 'src/assets/img/icon-34.png',
-          to: path.join(__dirname, 'build'),
-          force: true,
-        },
-      ],
-    }),
+
+    // HTML pages
     new HtmlWebpackPlugin({
-      template: path.join(__dirname, 'src', 'pages', 'Newtab', 'index.html'),
-      filename: 'newtab.html',
-      chunks: ['newtab'],
-      cache: false,
-    }),
-    new HtmlWebpackPlugin({
-      template: path.join(__dirname, 'src', 'pages', 'Options', 'index.html'),
+      template: path.join(__dirname, 'src/pages/Options/index.html'),
       filename: 'options.html',
       chunks: ['options'],
       cache: false,
     }),
     new HtmlWebpackPlugin({
-      template: path.join(__dirname, 'src', 'pages', 'Devtools', 'index.html'),
-      filename: 'devtools.html',
-      chunks: ['devtools'],
-      cache: false,
-    }),
-    new HtmlWebpackPlugin({
-      template: path.join(__dirname, 'src', 'pages', 'Panel', 'index.html'),
-      filename: 'panel.html',
-      chunks: ['panel'],
-      cache: false,
-    }),
-    new HtmlWebpackPlugin({
-      template: path.join(__dirname, 'src', 'pages', 'SidePanel', 'index.html'),
+      template: path.join(__dirname, 'src/pages/SidePanel/index.html'),
       filename: 'pages/SidePanel/index.html',
       chunks: ['sidepanel'],
       cache: false,
@@ -221,17 +142,13 @@ var options = {
   },
 };
 
-if (env.NODE_ENV === 'development') {
-  options.devtool = 'cheap-module-source-map';
-} else {
-  options.optimization = {
+if (!isDevelopment) {
+  config.optimization = {
     minimize: true,
-    minimizer: [
-      new TerserPlugin({
-        extractComments: false,
-      }),
-    ],
+    minimizer: [new TerserPlugin({ extractComments: false })],
   };
+} else {
+  config.devtool = 'cheap-module-source-map';
 }
 
-module.exports = options;
+module.exports = config;

@@ -29,3 +29,10 @@ secrets.*.js
 /.idea/Bookmarks-Centralized-Management-Chrome-Extension-master.iml
 /.idea/modules.xml
 /.idea/vcs.xml
+/dist/background/index.js
+/dist/pages/Sidepanel/index.html
+/dist/sidepanel/index.js
+/dist/sidepanel/index.js.LICENSE.txt
+/dist/icon-34.png
+/dist/icon-128.png
+/dist/logo.svg

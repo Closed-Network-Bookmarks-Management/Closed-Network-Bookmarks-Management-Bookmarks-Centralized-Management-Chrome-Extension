@@ -1,27 +1,23 @@
 {
-  "manifest_version": 3,
-  "name": "Auto SidePanel Trigger",
+  "name": "UCloud 보안망 URL 공유 확장",
+  "description": "중앙 집중식 URL 관리",
   "version": "1.0",
-  "description": "확장 아이콘 클릭 시 사이드패널 자동 열기",
-  "permissions": ["scripting", "tabs"],
-  "host_permissions": ["<all_urls>"],
-
-  "background": {
-    "service_worker": "background.bundle.js"
-  },
-
+  "manifest_version": 3,
   "action": {
-    "default_icon": "icon-34.png"
+    "default_title": "UCloud URL"
   },
-
   "side_panel": {
-    "default_path": "pages/SidePanel/index.html"
+    "default_path": "pages/Sidepanel/index.html"
   },
-
-  "content_scripts": [
-    {
-      "matches": ["<all_urls>"],
-      "js": ["contentScript.bundle.js"]
-    }
-  ]
+  "permissions": ["sidePanel", "storage", "tabs"],
+  "host_permissions": ["<all_urls>"],
+  "background": {
+    "service_worker": "pages/Background/index.js"
+  },
+  "content_scripts": [],
+  "icons": {
+    "16": "icon-16.png",
+    "48": "icon-48.png",
+    "128": "icon-128.png"
+  }
 }

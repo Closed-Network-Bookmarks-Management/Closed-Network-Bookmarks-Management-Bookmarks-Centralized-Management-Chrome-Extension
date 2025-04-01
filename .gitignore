@@ -22,3 +22,10 @@
 
 # secrets
 secrets.*.js
+/.idea/codeStyles/codeStyleConfig.xml
+/.idea/codeStyles/Project.xml
+/.idea/inspectionProfiles/Project_Default.xml
+/.idea/.gitignore
+/.idea/Bookmarks-Centralized-Management-Chrome-Extension-master.iml
+/.idea/modules.xml
+/.idea/vcs.xml

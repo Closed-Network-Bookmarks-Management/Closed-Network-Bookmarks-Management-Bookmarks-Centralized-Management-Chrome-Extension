@@ -8,6 +8,11 @@
     "default_popup": "popup.html",
     "default_icon": "icon-34.png"
   },
+
+  "side_panel": {
+    "default_path": "pages/SidePanel/index.html"
+  },
+
   "chrome_url_overrides": {
     "newtab": "newtab.html"
   },
